@@ -1,10 +1,5 @@
 'use strict';
 
-// Safari provides `browser`; shared source uses the Promise-compatible `chrome` name.
-if (typeof globalThis.chrome === 'undefined' && typeof globalThis.browser !== 'undefined') {
-  globalThis.chrome = globalThis.browser;
-}
-
 const CONFIG_KEY = 'ainsStudioConfigV1';
 const AINS_MATCH = 'https://ains.moe.gov.my/web/';
 
@@ -39,21 +34,15 @@ async function applyAllTabs() {
 
 chrome.action.onClicked.addListener(async tab => {
   const url = 'https://ains.moe.gov.my/web/dashboard?ains-studio=settings';
-  if (tab.id && tab.url?.startsWith(AINS_MATCH) && isStudioRoute(tab.url) && new URL(tab.url).searchParams.get('ains-studio') === 'settings') {
-    await chrome.tabs.update(tab.id, { url, active: true });
-  } else {
-    await chrome.tabs.create({ url });
-  }
+  if (tab.id && tab.url?.startsWith(AINS_MATCH) && isStudioRoute(tab.url) && new URL(tab.url).searchParams.get('ains-studio') === 'settings') await chrome.tabs.update(tab.id, { url, active: true });
+  else await chrome.tabs.create({ url });
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (message?.type !== 'ains-studio-open-settings') return;
   const url = 'https://ains.moe.gov.my/web/dashboard?ains-studio=settings';
-  if (sender.tab?.id && isStudioRoute(sender.tab.url || '') && new URL(sender.tab.url).searchParams.get('ains-studio') === 'settings') {
-    chrome.tabs.update(sender.tab.id, { active: true });
-  } else {
-    chrome.tabs.create({ url });
-  }
+  if (sender.tab?.id && isStudioRoute(sender.tab.url || '') && new URL(sender.tab.url).searchParams.get('ains-studio') === 'settings') chrome.tabs.update(sender.tab.id, { active: true });
+  else chrome.tabs.create({ url });
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

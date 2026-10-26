@@ -405,13 +405,12 @@
       menu.querySelectorAll('[data-theme]').forEach((el,i) => { el.querySelector('span').textContent=text.themes[i]; el.setAttribute('aria-checked',String(el.dataset.theme===theme)); });
       toggle.setAttribute('aria-label',text.toggle);menu.querySelector('#ains-language').setAttribute('aria-label',text.language);
     };
-    const showUpdateToast = async () => {
+    const showUpdateToast = () => {
       const version = chrome.runtime.getManifest().version;
       const key = 'ains-studio-last-seen-version';
-      try {
-        const result = await chrome.storage.local.get(key);
-        if (result[key] === version) return;
-        await chrome.storage.local.set({[key]:version});
+      chrome.storage.local.get(key, result => {
+        if (chrome.runtime.lastError || result[key] === version) return;
+        chrome.storage.local.set({[key]:version});
         const copy = {
           en:{title:`AINS Studio successfully updated to v${version}`,heading:'This update includes',detail:'A full settings center, feature controls, custom 404 page, and a “Don’t show again” option for AINS announcements.',close:'Dismiss'},
           ms:{title:`AINS Studio berjaya dikemas kini ke v${version}`,heading:'Kemas kini ini merangkumi',detail:'Pusat tetapan penuh, kawalan ciri, halaman 404 tersuai dan pilihan “Jangan tunjukkan lagi” untuk pengumuman AINS.',close:'Tutup'},
@@ -421,7 +420,7 @@
         toast.innerHTML=`<span class="ains-update-mark" aria-hidden="true">A</span><div class="ains-update-copy"><b>${copy.title}</b><strong>${copy.heading}</strong><p>${copy.detail}</p></div><button type="button" aria-label="${copy.close}">×</button>`;
         const close=()=>{toast.classList.add('ains-update-leaving');setTimeout(()=>toast.remove(),220);};
         toast.querySelector('button').addEventListener('click',close);document.body.append(toast);setTimeout(close,10000);
-      } catch (_) {}
+      });
     };
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message?.type === 'ains-studio-get-settings') {
